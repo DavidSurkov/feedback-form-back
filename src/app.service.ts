@@ -25,7 +25,10 @@ export class AppService {
     const feedback = this.feedbackRepository.create(createFeedbackDto);
     return this.feedbackRepository.save(feedback);
   }
-  async update(id: string, updateFeedbackDto: UpdateFeedbackDto) {
+  async update(
+    id: string,
+    updateFeedbackDto: UpdateFeedbackDto,
+  ): Promise<Feedback> {
     const feedback = await this.feedbackRepository.preload({
       id: +id,
       ...updateFeedbackDto,
@@ -35,7 +38,7 @@ export class AppService {
     }
     return this.feedbackRepository.save(feedback);
   }
-  async remove(id: string) {
+  async remove(id: string): Promise<Feedback> {
     const feedback = await this.findOne(id);
     return this.feedbackRepository.remove(feedback);
   }
