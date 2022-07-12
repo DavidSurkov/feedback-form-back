@@ -1,36 +1,32 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Feedback } from './feedback.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FormModule } from './form/form.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Feedback]),
-    /*TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'pass123',
-      database: 'postgres',
-      autoLoadEntities: true,
-      synchronize: true, //Disable before prod
-    }),*/
-    ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      entities: ['dist/**/*.entity{.ts,.js}'],
-      autoLoadEntities: true,
-      synchronize: true,
-      url: process.env.DATABASE_URL,
+    FormModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('POSTGRES_HOST'),
+        port: configService.get<string>('POSTGRES_PORT'),
+        username: configService.get<string>('POSTGRES_USER'),
+        password: configService.get<string>('POSTGRES_PASS'),
+        database: configService.get<string>('POSTGRES_DB'),
+        entities: [__dirname + '/form/entities/**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        logging: true,
+        migrationsRun: false,
+        synchronize: false,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      }),
+      inject: [ConfigService],
     }),
+    ConfigModule.forRoot(),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
